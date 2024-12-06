@@ -1,0 +1,10 @@
+services:
+  low-latency-app:
+    container_name: low-latency-app
+    build:
+      dockerfile: ./Dockerfile
+    volumes:
+      - type: bind
+        source: /home/cod-salmon/low-latency-app/outputs
+        target: /usr/outputs
+    command: "./build/thread_example"
