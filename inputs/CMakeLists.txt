@@ -27,6 +27,8 @@ list(APPEND LIBS pthread)
 
 # Link source file to executable with the same name
 add_executable(thread_example thread_example.cpp)
-
-# Link executable to libraries
+# Link executable to library
 target_link_libraries(thread_example PUBLIC ${LIBS})
+
+add_executable(mem_pool_example mem_pool_example.cpp)
+target_link_libraries(mem_pool_example PUBLIC ${LIBS})

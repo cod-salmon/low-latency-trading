@@ -45,6 +45,5 @@ low-latency-app  | dummyFunction sleeping...
 low-latency-app  | main waiting for threads to be done.
 low-latency-app  | dummyFunction done.
 low-latency-app  | main exiting.
-
 ```
 
