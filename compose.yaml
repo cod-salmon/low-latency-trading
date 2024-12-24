@@ -7,4 +7,4 @@ services:
       - type: bind
         source: /home/cod-salmon/low-latency-app/outputs
         target: /usr/outputs
-    command: "./build/logging_example"
+    command: "./build/socket_example"
