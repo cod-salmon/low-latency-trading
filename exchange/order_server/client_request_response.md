@@ -1,6 +1,6 @@
 # Client Requests
 In the `client_request.h` file we have the following:
-- A **client request**: A definition of the `MEClientRequest` struct. Every instance of this struct will hold specific values for most typedefs with defined in `common/types.h`. 
+- A **client request**: A definition of the `MEClientRequest` struct. Every instance of this struct will hold specific values for some of the typedefs from `common/types.h`. 
 - A **to-string method for the client request**. The `MEClientRequest` struct has a `toString`  method to print itself (the `common/types.h` values that characterise it).
 - A **client request type**. An enum class called `ClientRequestType` which can be either INVALID, NEW (the client has a new order request) or CANCEL (the client wishes to cancel a buy/sell order request).
 - A **to-string method for the client request type**. 
