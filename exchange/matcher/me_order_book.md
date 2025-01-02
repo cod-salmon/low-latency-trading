@@ -51,13 +51,13 @@ Takes a queue of new orders at a speciic price, `new_orders_at_price`. First, it
     and in CASE D:
         `target` ---- `new_orders_at_price` ---- `target->next_entry_`
 
-# `MEOrderBook::removeOrdersAtPrice`
+## `MEOrderBook::removeOrdersAtPrice`
 The reverse method to `addOrdersByPrice`. We get `orders_at_price_` for the given `side` and `price`. We also get the `best_orders_by_price` (`bids_by_price`/`asks_by_price`) according to the input (buy/sell) `side`. 
 - If it happens that `orders_at_price_` is the only entry in the buy/sell book, then we need to set `bids_by_price`/`asks_by_price` to `nullptr`, as there is no best bid/ask once we remove that entry.
 - If not, (1) remove link to this `MEOrderAtPrice` from its `previous_` and `next_` entries; (2) if `orders_at_price` turns out to be also the best bid/ask (or equal to `best_orders_by_price`), then we need to shift `bids_by_price`/`asks_by_price` to `orders_at_price`'s `next_entry_`; and (3) we set `orders_at_price`'s previous and next entries to null.
 - Finally, we set the `MEOrderAtPrice` pointer for the input `price` and `side` to `nullptr` and deallocate it from its memory in the `orders_at_price_pool_`.
 
-# `MEOrderBook::match`
+## `MEOrderBook::match`
 This function is to try to match an active order (of `client_id` and) of size `leaves_qty` to a passive order (of `client_order_id` and) of size `itr->qty_`. "Active" here refers to some order that has just recently been processed vs. an order which already exists in the order book.
 
 How much the active order gets filled with the existing order is `fill_qty` (the minimum of their quantities). "Matching" consists on reducing both `leaves_qty` and `itr->qty_` by the `fill_qty`. 
@@ -67,13 +67,13 @@ Once done, we
 (2) Inform the market that a `fill_qty` has been traded; AND
 (3) If there's no more left from `itr` after the matching, then we also inform the market that the order has been cleared; or, if there's still some leftover after the matching, then we also inform the market of the update on `itr`.
 
-# `MEOrderBook::checkForMatch`
+## `MEOrderBook::checkForMatch`
 Uses `MEOrderBook::match` to get how much would be left over if we were to match `client_id`'s order in the current order book. Note our best offer (most aggressive) order in the order book is kept at `bids_by_price`/`asks_by_price`, which holds a FIFO queue of MEOrder objects (from different clients and different quantities) at price `price`, the first of which is `first_me_order_`. During this method, we loop over the `MEOrders` in `asks_by_price`/`bids_by_price` until either we completely fill the match (`leaves_qty` is zero) or `asks_by_price`/`bids_by_price` becomes `nullptr`. Note the latter can happen when we keep calling `MEOrderBook::match` and matching passive orders without running out of `leaves_qty`. We might keep calling `MEOrderBook::removeOrder` and `MEOrderBook::removeOrdersAtPrice`, updating `asks_by_price`/`bids_by_price` accordingly until there are no more (hence best) asks/bids in the order book.
 
-# `MEOrderBook::add`
+## `MEOrderBook::add`
 To use when we want to add an `MEOrder` to the order book. First thing we do is to generate a market response, informing that we are accepting a new order into the book. Then we call `MEOrderBook::checkForMatch`. This might find a full match (`leaves_qty` becomes zero) between the active order and the existing passive orders, so there is no need to add the order to the list of passive orders. If not, then we assign a priority to the order according to its `price`, add it to the order book (`orders_at_price`), and inform the market that a new order has been added.
 
-# `MEOrderBook::cancel`
+## `MEOrderBook::cancel`
 Recall that in the `MEOrderBook` we keep two hashmaps:
 - `cid_oid_to_order_`, a ClientOrderHashMap, or an array of OrderHashMap objects - that is, an array of arrays of MEOrder pointers, first sorted by `client_id`, then by `client_order_id`; and
 - `price_orders_at_price_`, an OrdersAtPriceHashMap, or an array of MEOrdersAtPrice, sorted by price. Recall as well that FIFO gets applied on the MEOrdersAtPrice objects on this array, which are used during matching.
