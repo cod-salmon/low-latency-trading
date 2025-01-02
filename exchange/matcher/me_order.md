@@ -10,10 +10,10 @@ Another struct composed of a:
 - `price_`, of this order;
 - `qty_`, the amount the client wants to buy/sell for this `price_`;
 - `priority_`, which represents the position of this order in the queue of other MEOrder instances with the same `side_` and `price_` values in the OrderBook. Note the position in the queue gets assigned on a FIFO basis. 
-- two `MEOrder` pointers to the `prev_order_` and `next_order_` in the MEOrdersAtPrice struture (see just below).
+- two `MEOrder` pointers to the `prev_order_` and `next_order_` in the MEOrdersAtPrice structure (see just below).
 
 # The MEOrdersAtPrice struct
-The `MEOrdersAtPrice` struct keeps all orders with a specific `side_` and `price_`. The first order in the queue is saved at the `first_me_order`. It also has two `MEOrdersAtPrice` pointers, `prev_entry_` and `next_entry_` for the previous and next `MEOrdersAtPrice` entries in the list from the most aggressive to the least aggressive prices on the buy and sell sides.
+The `MEOrdersAtPrice` struct keeps all orders with a specific `side_` and `price_`. The first order in the queue is saved at the `first_me_order`. It also has two `MEOrdersAtPrice` pointers, `prev_entry_` and `next_entry_` for the previous and next `MEOrdersAtPrice` entries in the list it belongs to, from the most aggressive to the least aggressive prices on the buy and sell sides.
 
 # Three typedefs
 - `OrderHashMap`, an array of `MEOrder` pointers;
