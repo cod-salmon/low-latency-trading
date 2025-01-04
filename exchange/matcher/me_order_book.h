@@ -120,10 +120,7 @@ namespace Exchange {
 
           if ((new_orders_at_price->side_ == Side::BUY && new_orders_at_price->price_ > best_orders_by_price->price_) ||
               (new_orders_at_price->side_ == Side::SELL && new_orders_at_price->price_ < best_orders_by_price->price_)) {
-            // If: CASE B; else: not CASE A:
-            target->next_entry_ = (target->next_entry_ == best_orders_by_price ? 
-                                   new_orders_at_price :    /* CASE B */
-                                   target->next_entry_);    /* any not CASE A */
+            target->next_entry_ = (target->next_entry_ == best_orders_by_price ? new_orders_at_price :  target->next_entry_);
             (new_orders_at_price->side_ == Side::BUY ? bids_by_price_ : asks_by_price_) = new_orders_at_price;
           }
         }
