@@ -1,0 +1,2 @@
+/usr/src/common/socket_utils.h:112 createSocket() Mon Jan 13 00:35:25 2025 configuration:SocketCfg[ip:233.252.14.3 iface:lo port:20001 is_udp:1 is_listening:0 needs_SO_timestamp:0]
+/usr/src/exchange/market_data/market_data_publisher.cpp:15 run() Mon Jan 13 00:35:26 2025

@@ -10,16 +10,19 @@ namespace Exchange {
 #pragma pack(push, 1)
   enum class MarketUpdateType : uint8_t {
     INVALID = 0,
-    ADD = 1,
-    MODIFY = 2,
-    CANCEL = 3,
-    TRADE = 4,
+    CLEAR = 1,
+    ADD = 2,
+    MODIFY = 3,
+    CANCEL = 4,
+    TRADE = 5,
     SNAPSHOT_START = 6,
     SNAPSHOT_END = 7
   };
 
   inline std::string marketUpdateTypeToString(MarketUpdateType type) {
     switch (type) {
+      case MarketUpdateType::CLEAR:
+        return "CLEAR";
       case MarketUpdateType::ADD:
         return "ADD";
       case MarketUpdateType::MODIFY:

@@ -1,9 +1,3 @@
-# Set the minimum required version of CMake
-cmake_minimum_required(VERSION 3.0)
-
-# Set the project name
-project(LowLatencyApp)
-
 # Set CMake to compile in cpp20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER g++)

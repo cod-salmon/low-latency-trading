@@ -1,0 +1,9 @@
+services:
+  low-latency-app:
+    container_name: low-latency-app
+    build:
+      dockerfile: ./Dockerfile
+    volumes:
+      - type: bind
+        source: /home/drea/Documents/building-low-latency-applications-cpp/low-latency-app/exchange/outputs
+        target: /usr/outputs

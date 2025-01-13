@@ -13,6 +13,6 @@ During `MatchingEngine::processClientRequest`,
 - If `ClientRequestType::NEW`, we call `MEOrderBook::add`, to add the order from the `MEClientRequest` to its corresponding `order_book`;
 - If `ClientRequestType::CANCEL`, we call `MEOrderBook::cancel` instead, and remove the order specified by the `MEClientRequest` from its corresponding `order_book`.
 
-There are also other two methods: `MatchingEngine::sendClientResponse`, which takes a `MEClientResponse` from the matching engine and adds it to `outgoing_ogw_responses_` to be passed onto the order gateway server; and `MatchingEngine::sendMarketUpdate`, which takes a `MEMarketUpdate` from the matching engine and adds it to `outgoing_md_updates_` to be passed onto the market data publisher.
+There are also other two methods: `MatchingEngine::sendClientResponse`, which takes a `MEClientResponse` from the order_book and adds it to `outgoing_ogw_responses_` to be passed onto the order gateway server; and `MatchingEngine::sendMarketUpdate`, which takes a `MEMarketUpdate` from the order_book and adds it to `outgoing_md_updates_` to be passed onto the market data publisher.
 
 Both `MatchingEngine::sendClientResponse` and `MatchingEngine::sendMarketUpdate` methods are called during `MEOrderBook::add`, `MEOrderBook::cancel` and `MEOrderBook::match`, through the MEOrderBook's internal `matching_engine_` instance. 
