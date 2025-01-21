@@ -21,7 +21,7 @@ Some member variables it has:
 The main methods for the `MEOrderBook` class are:
 
 ## `MEOrderBook::addOrdersByPrice`
-Takes a queue of new orders at a speciic price, `new_orders_at_price`. First, it places the new orders at the specified price index (`priceToIndex`)inside the `price_orders_at_price`. Then we adjust `bids_by_price_`/`asks_by_price_` and the internal list the offers follow accordingly.
+Takes a queue of new orders at a speciic price, `new_orders_at_price`. First, it places the new orders at the specified price index (`priceToIndex`) inside the `price_orders_at_price`. Then we adjust `bids_by_price_`/`asks_by_price_` and the internal list the offers follow accordingly.
 
 - On the SELL side, `asks_by_price_` represents the best queue of SELL orders; while on the BUY side, `bids_by_price_` represents the best queue of BUY orders. According to the side of `new_orders_at_price`, either one or the other is selected as the `best_orders_by_price`.
 - It is possible that the `best_orders_by_price` (`bids_by_price_` or `asks_by_price_`) are yet empty. In that case, we set `bids_by_price_` (or `asks_by_price_`) equal to `new_orders_at_price` and its `prev_entry_` and `next_entry_` equal to itself.
