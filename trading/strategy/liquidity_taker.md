@@ -1,0 +1,7 @@
+# The LiquidityTaker class
+While the MarketMaker sends passive orders to the order book, the LiquidityTaker executes trade events by sending aggressive orders that trade against liquidity resting in the book. Therefore, while the `MarketMaker::onOrderBookUpdate` is developed and  `MarketMaker::onTradeUpdate` is left empty, `LiquidityTaker::onOrderBookUpdate`is left empty while `LiquidityTaker::onTradeUpdate` is developed:
+
+### `LiquidityTaker::onTradeUpdate`
+Very similar to `MarketMaker::LiquidityTaker`  but instead of looking at the fair or market price for reference, we look at the `agg_qty_ratio`. This is computed as the `market_update`'s `qty` to the `bbo`'s bid/ask `qty`. When this ratio is greater than or equal to `threshold`, it is an aggressive trade (we are selling/buying much more than the best existing sell/buy quantity). Therefore, we execute the trade. 
+- If the market update is of `Side::BUY`, then we call `OrderManager::moveOrders` to buy a `clip` amount of passive orders at `bbo`'s `ask_price_` and sell a `clip` amount of passive orders at `Price_INVALID` (effectively, perform no sales).
+- If the market update is of `Side::SELL`, then we call `OrderManager::moveOrders` to buy `clip` amount of passive orders at `Price_INVALID` and sell a `clip` amount of passive orders at `bbo`'s `bid_price_` . 
