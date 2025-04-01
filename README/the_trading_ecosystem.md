@@ -76,7 +76,29 @@ Perhaps, just as it happened in the physical exchange, the traders would rather 
 
 ![](./pics/trading-eco-2.png)
 
+## The market exchange
+The market exchange therefore consists of three components: the matching engine, the market data publisher and the order gateway server. We shall find on the current code a folder `./exchange/`, holding inside three separate folders: `./exchange/matcher/`, `./exchange/market_data/` and `/exchange/order_server/` for the respective exchange components.
+
+### The matching engine, `./exchange/matcher/`
+The **matching engine** attempts to match new **orders** against the **limit order book**. We shall therefore find a `.h` and a `.cpp` file (`me_order.h` and `me_order.cpp`) declaring and implementing what is an "order"; a `.h` and a `.cpp` file (`me_order_book.h` and `me_order_book.cpp`) declaring and implementing what is the "limit order book" (a bunch of "orders" arranged in certain way); and finally, a `.h` and a `.cpp` file declaring and implementing what the "matching engine" is (something that attempts to match new orders against the limit order book).
 
 
+### The order gateway server, `/exchange/order_server/`
+This is the component that connects clients to the exchange. To do so it maintains a server of TCP connections (found at `order_server.h` and `order_server.cpp`, see more on --- ). Recall that, to keep fairness, client requests are sent to the exchange following First In First Out ordering, so we need that kind of element in the server (found at `fifo_sequencer.h`). We also need to define an object to deal with each client request sent from the order gateway server to the exchange (`client_request.h`) and an object to deal with each client response from the exchange to the order gateway server (`client_response.h`).
 
- 
+### The market data publisher, `./exchange/market_data/`
+This is the component which publishes updates on the limit order book to the public market. It takes the updates coming from the matching engine (`market_update.h`), and (1) sends them straight to the UDP socket for the incremental stream; and (2) sends them to the snapshot syntheszier (`snapshot_synthesizer.h` and `snapshot_synthesizer.cpp`) to be later sent to the UDP socket for the snapshot stream (see more at ---).
+
+## The market participant
+The market participant consists again of three components: the trading engine (`./trading/strategy/`), the order gateway client (`./trading/order_gw/`) and the market data consumer (`./trading/market_data/`).
+
+### The market data consumer, `./trading/market_data/`
+This component is responsible for subscribing to the UDP stream set up by the market data publisher, consuming the market data updates, and decoding 
+the market data protocol into an internal format used by the trading engine.
+
+### The order gateway client, `./trading/order_gw/`
+This component connects to the order gateway server through a TCP socket. It sends requests from the trading engine to the exchange, and communicates market responses from the exchange to the trading engine.
+
+### The trading engine, `./trading/strategy/`
+The trading engine (`trade_engine.h` and `trade_engine.cpp`) keeps a copy of the limit order book from the exchange (`market_order_book.h` and `market_order_book.cpp`), and updates its orders (`market_order.h` and `market_order.cpp`) as new data arrives from the market data consumer. Data from the market data consumer is actually first processed by the order manager (`order_manager.h` and `order_manager.cpp`). 
+The trading engine also uses a feature engine (`feature_engine.h`) to compute features of interest from the limit order book. Features of interest could be, for instance, the market price of the asset (based on the current limit order book). These features of interest, along with other factors, are used by the trading strategies to make trading decisions. There are two trading algorithms available in this code: the **market-making** or **liquidity-providing** algorithm (`market_maker.h` and `market_maker.cpp`); and the **liquidity-taker** algorithm (`liquidity_taker.h` and `liquidity_taker.cpp`). Now, when active, these two strategies take some variable position and make certains profits and losses (PnL) as their orders get executed in the market. Both the strategy's position and its PnL are tracked by the position keeper (`position_keeper.h`). In addition, when the algorithms take certain trading decision, this decision comes with some risk. The risk manager (`risk_manager.h`) is in charged of tracking and regulating such risk.
