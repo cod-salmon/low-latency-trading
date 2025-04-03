@@ -11,7 +11,7 @@ int main(int, char **) {
   const char* s = "test C-string";
   std::string ss = "test string";
 
-  Logger logger("/usr/outputs/logging_example.log");
+  Logger logger("logging_example.log");
 
   logger.log("Logging a char:% an int:% and an unsigned:%\n", c, i, ul);
   logger.log("Logging a float:% and a double:%\n", f, d);

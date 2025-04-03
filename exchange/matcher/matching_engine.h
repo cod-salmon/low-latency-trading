@@ -19,15 +19,15 @@ namespace Exchange {
 
     ~MatchingEngine();
 
+    /// Start and stop the matching engine main thread.
     auto start() -> void;
 
     auto stop() -> void;
 
+    /// Called to process a client request read from the lock free queue sent by the order server.
     auto processClientRequest(const MEClientRequest *client_request) noexcept {
-      // Get order book for the ticker id
       auto order_book = ticker_order_book_[client_request->ticker_id_];
-      switch (client_request->type_) { 
-        // Either client has a buy/sell order or wants to cancel
+      switch (client_request->type_) {
         case ClientRequestType::NEW: {
           order_book->add(client_request->client_id_, client_request->order_id_, client_request->ticker_id_,
                            client_request->side_, client_request->price_, client_request->qty_);
@@ -46,6 +46,7 @@ namespace Exchange {
       }
     }
 
+    /// Write client responses to the lock free queue for the order server to consume.
     auto sendClientResponse(const MEClientResponse *client_response) noexcept {
       logger_.log("%:% %() % Sending %\n", __FILE__, __LINE__, __FUNCTION__, Common::getCurrentTimeStr(&time_str_), client_response->toString());
       auto next_write = outgoing_ogw_responses_->getNextToWriteTo();
@@ -53,6 +54,7 @@ namespace Exchange {
       outgoing_ogw_responses_->updateWriteIndex();
     }
 
+    /// Write market data update to the lock free queue for the market data publisher to consume.
     auto sendMarketUpdate(const MEMarketUpdate *market_update) noexcept {
       logger_.log("%:% %() % Sending %\n", __FILE__, __LINE__, __FUNCTION__, Common::getCurrentTimeStr(&time_str_), market_update->toString());
       auto next_write = outgoing_md_updates_->getNextToWriteTo();
@@ -60,10 +62,10 @@ namespace Exchange {
       outgoing_md_updates_->updateWriteIndex();
     }
 
+    /// Main loop for this thread - processes incoming client requests which in turn generates client responses and market updates.
     auto run() noexcept {
       logger_.log("%:% %() %\n", __FILE__, __LINE__, __FUNCTION__, Common::getCurrentTimeStr(&time_str_));
       while (run_) {
-        // Start running by processing client requests
         const auto me_client_request = incoming_requests_->getNextToRead();
         if (LIKELY(me_client_request)) {
           logger_.log("%:% %() % Processing %\n", __FILE__, __LINE__, __FUNCTION__, Common::getCurrentTimeStr(&time_str_),
@@ -74,7 +76,7 @@ namespace Exchange {
       }
     }
 
-    // Deleted default, copy & move constructors and assignment-operators.
+    /// Deleted default, copy & move constructors and assignment-operators.
     MatchingEngine() = delete;
 
     MatchingEngine(const MatchingEngine &) = delete;
@@ -86,10 +88,16 @@ namespace Exchange {
     MatchingEngine &operator=(const MatchingEngine &&) = delete;
 
   private:
-    OrderBookHashMap ticker_order_book_; // array of MEOrderBook pointers
-    ClientRequestLFQueue *incoming_requests_ = nullptr; // incoming request from gateway
-    ClientResponseLFQueue *outgoing_ogw_responses_ = nullptr; // outgoing gateway responses
-    MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr; // outgoing market data updates
+    /// Hash map container from TickerId -> MEOrderBook.
+    OrderBookHashMap ticker_order_book_;
+
+    /// Lock free queues.
+    /// One to consume incoming client requests sent by the order server.
+    /// Second to publish outgoing client responses to be consumed by the order server.
+    /// Third to publish outgoing market updates to be consumed by the market data publisher.
+    ClientRequestLFQueue *incoming_requests_ = nullptr;
+    ClientResponseLFQueue *outgoing_ogw_responses_ = nullptr;
+    MEMarketUpdateLFQueue *outgoing_md_updates_ = nullptr;
 
     volatile bool run_ = false;
 

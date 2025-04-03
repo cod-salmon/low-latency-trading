@@ -6,7 +6,7 @@ namespace Trading {
                              Exchange::ClientResponseLFQueue *client_responses,
                              std::string ip, const std::string &iface, int port)
       : client_id_(client_id), ip_(ip), iface_(iface), port_(port), outgoing_requests_(client_requests), incoming_responses_(client_responses),
-      logger_("trading_order_gateway_" + std::to_string(client_id) + ".log"), tcp_socket_(logger_) {
+      logger_("/usr/outputs/trading_order_gateway_" + std::to_string(client_id) + ".log"), tcp_socket_(logger_) {
     tcp_socket_.recv_callback_ = [this](auto socket, auto rx_time) { recvCallback(socket, rx_time); };
   }
 

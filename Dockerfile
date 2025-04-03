@@ -16,7 +16,6 @@ RUN mkdir /usr/outputs
 RUN mkdir ./build
 RUN cmake -S . -B ./build
 RUN make -C ./build
-CMD [ "./build/exchange_main" ]
 
 
 

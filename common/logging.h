@@ -10,8 +10,10 @@
 #include "time_utils.h"
 
 namespace Common {
+  /// Maximum size of the lock free queue of data to be logged.
   constexpr size_t LOG_QUEUE_SIZE = 8 * 1024 * 1024;
 
+  /// Type of LogElement message.
   enum class LogType : int8_t {
     CHAR = 0,
     INTEGER = 1,
@@ -24,6 +26,7 @@ namespace Common {
     DOUBLE = 8
   };
 
+  /// Represents a single and primitive log entry.
   struct LogElement {
     LogType type_ = LogType::CHAR;
     union {
@@ -40,18 +43,12 @@ namespace Common {
   };
 
   class Logger final {
-  private:
-    const std::string file_name_;
-    std::ofstream file_;
-
-    LFQueue<LogElement> queue_;
-    std::atomic<bool> running_ = {true};
-    std::thread *logger_thread_ = nullptr;
   public:
+    /// Consumes from the lock free queue of log entries and writes to the output log file.
     auto flushQueue() noexcept {
       while (running_) {
 
-        for (auto next = queue_.getNextToRead(); queue_.size(); next = queue_.getNextToRead()) {
+        for (auto next = queue_.getNextToRead(); queue_.size() && next; next = queue_.getNextToRead()) {
           switch (next->type_) {
             case LogType::CHAR:
               file_ << next->u_.c;
@@ -94,7 +91,6 @@ namespace Common {
         : file_name_(file_name), queue_(LOG_QUEUE_SIZE) {
       file_.open(file_name);
       ASSERT(file_.is_open(), "Could not open log file:" + file_name);
-      /* Create and launch thread at core ID -1. Run flushQueue with this calling Logger instance */
       logger_thread_ = createAndStartThread(-1, "Common/Logger " + file_name_, [this]() { flushQueue(); });
       ASSERT(logger_thread_ != nullptr, "Failed to start Logger thread.");
     }
@@ -103,25 +99,24 @@ namespace Common {
       std::string time_str;
       std::cerr << Common::getCurrentTimeStr(&time_str) << " Flushing and closing Logger for " << file_name_ << std::endl;
 
-      while (queue_.size()) { // while we still have elements in the queue
+      while (queue_.size()) {
         using namespace std::literals::chrono_literals;
         std::this_thread::sleep_for(1s);
       }
-
       running_ = false;
-      // If not calling join(), std::thread object constructor might be called before the thread is finished.
       logger_thread_->join();
 
       file_.close();
       std::cerr << Common::getCurrentTimeStr(&time_str) << " Logger for " << file_name_ << " exiting." << std::endl;
     }
 
+    /// Overloaded methods to write different log entry types to the lock free queue.
+    /// Creates a LogElement of the correct type and writes it to the lock free queue.
     auto pushValue(const LogElement &log_element) noexcept {
       *(queue_.getNextToWriteTo()) = log_element;
       queue_.updateWriteIndex();
     }
 
-    // Override pushValue for every log type
     auto pushValue(const char value) noexcept {
       pushValue(LogElement{LogType::CHAR, {.c = value}});
     }
@@ -159,7 +154,6 @@ namespace Common {
     }
 
     auto pushValue(const char *value) noexcept {
-      // Uses pushValue(const char value)  for every char in the list of chars
       while (*value) {
         pushValue(*value);
         ++value;
@@ -167,10 +161,10 @@ namespace Common {
     }
 
     auto pushValue(const std::string &value) noexcept {
-       // Uses pushValue(const char value)  for every char in the string
       pushValue(value.c_str());
     }
 
+    /// Parse the format string, substitute % with the variable number of arguments passed and write the string to the lock free queue.
     template<typename T, typename... A>
     auto log(const char *s, const T &value, A... args) noexcept {
       while (*s) {
@@ -180,7 +174,6 @@ namespace Common {
           } else {
             pushValue(value); // substitute % with the value specified in the arguments.
             log(s + 1, args...); // pop an argument and call self recursively.
-            // note we start from element we pushed; and first element in args... becomes "value", while second, third, etc. become new "args...".
             return;
           }
         }
@@ -189,14 +182,14 @@ namespace Common {
       FATAL("extra arguments provided to log()");
     }
 
-    // note that this is overloading not specialization. gcc does not allow inline specializations.
+    /// Overload for case where no substitution in the string is necessary.
+    /// Note that this is overloading not specialization. gcc does not allow inline specializations.
     auto log(const char *s) noexcept {
       while (*s) {
         if (*s == '%') {
           if (UNLIKELY(*(s + 1) == '%')) { // to allow %% -> % escape character.
             ++s;
           } else {
-            // we have an "%" expression without argument to fill-it in with
             FATAL("missing arguments to log()");
           }
         }
@@ -204,7 +197,7 @@ namespace Common {
       }
     }
 
-    // Deleted default, copy & move constructors and assignment-operators.
+    /// Deleted default, copy & move constructors and assignment-operators.
     Logger() = delete;
 
     Logger(const Logger &) = delete;
@@ -214,5 +207,17 @@ namespace Common {
     Logger &operator=(const Logger &) = delete;
 
     Logger &operator=(const Logger &&) = delete;
+
+  private:
+    /// File to which the log entries will be written.
+    const std::string file_name_;
+    std::ofstream file_;
+
+    /// Lock free queue of log elements from main logging thread to background formatting and disk writer thread.
+    LFQueue<LogElement> queue_;
+    std::atomic<bool> running_ = {true};
+
+    /// Background logging thread.
+    std::thread *logger_thread_ = nullptr;
   };
 }

@@ -36,9 +36,8 @@ namespace Common {
 
     TCPSocket &operator=(const TCPSocket &&) = delete;
 
-    /// File descriptor for the socket that we connect to
-    //  to either receive data from or send data to
-    int socket_fd_ = -1; 
+    /// File descriptor for the socket.
+    int socket_fd_ = -1;
 
     /// Send and receive buffers and trackers for read/write indices.
     std::vector<char> outbound_data_;

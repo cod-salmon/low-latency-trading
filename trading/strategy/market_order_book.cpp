@@ -16,11 +16,9 @@ namespace Trading {
     oid_to_order_.fill(nullptr);
   }
 
-  // Updates the order book from the market update, which is passed as an argument. 
+  /// Process market data update and update the limit order book.
   auto MarketOrderBook::onMarketUpdate(const Exchange::MEMarketUpdate *market_update) noexcept -> void {
-    // We have a better bid
     const auto bid_updated = (bids_by_price_ && market_update->side_ == Side::BUY && market_update->price_ >= bids_by_price_->price_);
-    // We have a better ask
     const auto ask_updated = (asks_by_price_ && market_update->side_ == Side::SELL && market_update->price_ <= asks_by_price_->price_);
 
     switch (market_update->type_) {
@@ -41,15 +39,11 @@ namespace Trading {
       }
         break;
       case Exchange::MarketUpdateType::TRADE: {
-        // we simply forward that trade message down to the TradeEngine engine using 
-        // the onTradeUpdate() method. Trade messages do not update the order book in
-        // our market data protocol, so the subsequent code after this switch case
-        // does not need to be executed
         trade_engine_->onTradeUpdate(market_update, this);
         return;
       }
         break;
-      case Exchange::MarketUpdateType::CLEAR: {
+      case Exchange::MarketUpdateType::CLEAR: { // Clear the full limit order book and deallocate MarketOrdersAtPrice and MarketOrder objects.
         for (auto &order: oid_to_order_) {
           if (order)
             order_pool_.deallocate(order);
@@ -77,8 +71,6 @@ namespace Trading {
         break;
     }
 
-    // If bid_/ask_updated, then we got a better bid/ask which's been added
-    //  into the bids_/asks_by_price_ and we are able to update the BBO.
     updateBBO(bid_updated, ask_updated);
 
     logger_->log("%:% %() % % %", __FILE__, __LINE__, __FUNCTION__,
