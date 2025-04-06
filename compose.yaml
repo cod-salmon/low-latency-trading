@@ -3,8 +3,12 @@ services:
     container_name: low-latency-app
     build:
       dockerfile: ./Dockerfile
+    ports:
+      - '8888:8888'
     volumes:
       - type: bind
         source: /home/cod-salmon/low-latency-app/outputs
         target: /usr/outputs
-    command: "bash ./scripts/run_exchange_and_clients.sh"
+    command: "bash ./scripts/run_exchange_and_clients.sh && bash ./scripts/run_benchmarks.sh"
+
+# command: "bash ./scripts/run_exchange_and_clients.sh && bash ./scripts/run_benchmarks.sh"

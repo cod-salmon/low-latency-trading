@@ -17,14 +17,25 @@ namespace Exchange {
     while (run_) {
       for (auto market_update = outgoing_md_updates_->getNextToRead();
            outgoing_md_updates_->size() && market_update; market_update = outgoing_md_updates_->getNextToRead()) {
+        TTT_MEASURE(T5_MarketDataPublisher_LFQueue_read, logger_);
 
         logger_.log("%:% %() % Sending seq:% %\n", __FILE__, __LINE__, __FUNCTION__, Common::getCurrentTimeStr(&time_str_), next_inc_seq_num_,
                     market_update->toString().c_str());
+        
+        /* Used this to measure CPU freq
+          using namespace std::literals::chrono_literals;
+          START_MEASURE(Exchange_McastSocket_send_me);
+          std::this_thread::sleep_for(1s);
+          END_MEASURE(Exchange_McastSocket_send_me, logger_);
+        */
 
+        START_MEASURE(Exchange_McastSocket_send);
         incremental_socket_.send(&next_inc_seq_num_, sizeof(next_inc_seq_num_));
         incremental_socket_.send(market_update, sizeof(MEMarketUpdate));
+        END_MEASURE(Exchange_McastSocket_send, logger_);
 
         outgoing_md_updates_->updateReadIndex();
+        TTT_MEASURE(T6_MarketDataPublisher_UDP_write, logger_);
 
         // Forward this incremental market data update the snapshot synthesizer.
         auto next_write = snapshot_md_updates_.getNextToWriteTo();

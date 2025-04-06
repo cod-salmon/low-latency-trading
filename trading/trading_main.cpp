@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
   const auto algo_type = stringToAlgoType(argv[2]);
 
-  logger = new Common::Logger("trading_main_" + std::to_string(client_id) + ".log");
+  logger = new Common::Logger("/usr/outputs/trading_main_" + std::to_string(client_id) + ".log");
 
   const int sleep_time = 20 * 1000;
 

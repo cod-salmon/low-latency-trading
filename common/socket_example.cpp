@@ -6,7 +6,7 @@ int main(int, char **) {
   using namespace Common;
 
   std::string time_str_;
-  Logger logger_("socket_example.log");
+  Logger logger_("/usr/outputs/socket_example.log");
 
   auto tcpServerRecvCallback = [&](TCPSocket *socket, Nanos rx_time) noexcept {
     logger_.log("TCPServer::defaultRecvCallback() socket:% len:% rx:%\n",

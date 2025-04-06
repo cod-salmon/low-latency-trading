@@ -1,0 +1,8 @@
+matplotlib
+numpy
+jupyter
+pandas
+plotly
+hvplot
+session-info
+ipython
